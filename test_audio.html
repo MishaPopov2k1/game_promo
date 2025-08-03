@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Аудио - Кажется</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: 
+                linear-gradient(180deg, rgba(44, 62, 80, 0.9) 0%, rgba(52, 73, 94, 0.9) 100%),
+                url('public/images/dozhd_kapli_steklo_348253_3840x2400.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .audio-container {
+            background: #34495e;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 500px;
+        }
+        
+        audio {
+            width: 100%;
+            height: 50px;
+            margin: 20px 0;
+        }
+        
+        button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        button:hover {
+            background: #c0392b;
+        }
+        
+        .info {
+            background: #1a252f;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎵 Тест Трека "Кажется"</h1>
+    
+    <div class="audio-container">
+        <h3>habba-po - Кажется</h3>
+        
+        <audio id="testAudio" controls preload="auto">
+            <source src="music/kazhetsya/m4a/кажется2.m4a" type="audio/mp4">
+            <source src="music/kazhetsya/m4a/кажется2.m4a" type="audio/aac">
+            Ваш браузер не поддерживает воспроизведение аудио.
+        </audio>
+        
+        <div>
+            <button onclick="playAudio()">▶️ Играть</button>
+            <button onclick="pauseAudio()">⏸️ Пауза</button>
+            <button onclick="resetAudio()">🔄 Сначала</button>
+        </div>
+        
+        <div class="info" id="audioInfo">
+            Загружается...
+        </div>
+        
+        <div class="info">
+            <strong>Путь к файлу:</strong><br>
+            music/kazhetsya/m4a/кажется2.m4a<br>
+            <strong>Размер:</strong> 4.7MB
+        </div>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <a href="enhanced_version.html" style="color: #3498db; text-decoration: none; font-size: 18px;">
+            🎬 Перейти к игре →
+        </a>
+    </div>
+
+    <script>
+        const audio = document.getElementById('testAudio');
+        const infoDiv = document.getElementById('audioInfo');
+        
+        audio.addEventListener('loadeddata', () => {
+            const duration = Math.floor(audio.duration);
+            const minutes = Math.floor(duration / 60);
+            const seconds = duration % 60;
+            infoDiv.innerHTML = `
+                ✅ <strong>Трек загружен!</strong><br>
+                Длительность: ${minutes}:${seconds.toString().padStart(2, '0')}<br>
+                Готов к воспроизведению
+            `;
+        });
+        
+        audio.addEventListener('error', (e) => {
+            infoDiv.innerHTML = `
+                ❌ <strong>Ошибка загрузки!</strong><br>
+                Проверьте путь к файлу и формат
+            `;
+        });
+        
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration) {
+                const current = Math.floor(audio.currentTime);
+                const total = Math.floor(audio.duration);
+                const progress = Math.floor((audio.currentTime / audio.duration) * 100);
+                
+                const currentMin = Math.floor(current / 60);
+                const currentSec = current % 60;
+                const totalMin = Math.floor(total / 60);
+                const totalSec = total % 60;
+                
+                infoDiv.innerHTML = `
+                    🎵 <strong>Воспроизведение...</strong><br>
+                    ${currentMin}:${currentSec.toString().padStart(2, '0')} / ${totalMin}:${totalSec.toString().padStart(2, '0')}<br>
+                    Прогресс: ${progress}%
+                `;
+            }
+        });
+        
+        function playAudio() {
+            audio.play().catch(e => {
+                alert('Ошибка воспроизведения: ' + e.message);
+            });
+        }
+        
+        function pauseAudio() {
+            audio.pause();
+        }
+        
+        function resetAudio() {
+            audio.currentTime = 0;
+            if (!audio.paused) {
+                audio.play();
+            }
+        }
+    </script>
+</body>
+</html>

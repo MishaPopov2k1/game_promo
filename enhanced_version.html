@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кажется - Кинематографический опыт | habba-po</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: 
+                linear-gradient(180deg, rgba(26, 26, 46, 0.9) 0%, rgba(22, 33, 62, 0.9) 100%),
+                url('public/images/IMG_3137.JPG');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: 'Press Start 2P', monospace;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 1200px;
+            height: 800px;
+            background: 
+                linear-gradient(180deg, rgba(44, 62, 80, 0.7) 0%, rgba(52, 73, 94, 0.8) 30%, rgba(44, 62, 80, 0.7) 70%, rgba(26, 37, 47, 0.9) 100%),
+                url('public/images/dozhd_kapli_steklo_348253_3840x2400.jpg');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+            border: 3px solid #ecf0f1;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(52, 152, 219, 0.4);
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        /* Три дорожки для строчек */
+        .track {
+            position: absolute;
+            width: 100%;
+            height: 120px;
+            border-bottom: 2px solid rgba(236, 240, 241, 0.2);
+            z-index: 2;
+        }
+        
+        .track-1 { top: 220px; }
+        .track-2 { top: 350px; }
+        .track-3 { top: 480px; }
+        
+        /* Персонаж-портрет */
+        #player {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            left: 150px;
+            top: 200px;
+            z-index: 10;
+            transition: top 0.3s ease-out;
+        }
+        
+        /* Портрет habba-po */
+        .runner {
+            width: 100%;
+            height: 100%;
+            background-image: 
+                url('./public/images/HABBA.jpg'),
+                url('./HABBA.jpg'),
+                url('public/images/HABBA.jpg'),
+                url('HABBA.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            animation: floating 2s ease-in-out infinite;
+            border-radius: 50%;
+            border: 3px solid rgba(52, 152, 219, 0.8);
+            box-shadow: 
+                0 0 20px rgba(52, 152, 219, 0.6),
+                0 8px 16px rgba(0,0,0,0.4);
+            filter: brightness(1.1) contrast(1.1);
+            /* Fallback цвет если изображение не загрузится */
+            background-color: #e67e22;
+        }
+        
+        .runner::before {
+            /* Отключено для показа портрета */
+            display: none;
+        }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-8px) scale(1.05); }
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Строчки песни движутся справа налево */
+        .lyric-line {
+            position: absolute;
+            background: linear-gradient(45deg, rgba(173, 216, 230, 0.9), rgba(135, 206, 235, 0.9));
+            color: #2c3e50;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 16px;
+            animation: moveLeft 6s linear infinite;
+            border: 2px solid rgba(255,255,255,0.6);
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+            box-shadow: 0 4px 15px rgba(173, 216, 230, 0.4);
+            z-index: 5;
+            white-space: nowrap;
+            min-width: 200px;
+            text-align: center;
+            backdrop-filter: blur(2px);
+        }
+        
+        .lyric-line.chorus {
+            background: linear-gradient(45deg, rgba(255, 218, 185, 0.9), rgba(255, 192, 203, 0.9));
+            color: #2c3e50;
+            box-shadow: 0 4px 20px rgba(255, 192, 203, 0.5);
+            animation: moveLeft 6s linear infinite, glow 2s ease-in-out infinite alternate;
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.7);
+        }
+        
+        .lyric-line.intro {
+            background: linear-gradient(45deg, rgba(221, 160, 221, 0.9), rgba(216, 191, 216, 0.9));
+            color: #2c3e50;
+            box-shadow: 0 4px 15px rgba(221, 160, 221, 0.4);
+            border: 2px solid rgba(255,255,255,0.6);
+            font-size: 17px;
+        }
+        
+        @keyframes moveLeft {
+            from { 
+                left: 1200px; 
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            10% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            90% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to { 
+                left: -400px; 
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+        
+        @keyframes glow {
+            from { 
+                box-shadow: 0 4px 20px rgba(255, 192, 203, 0.5);
+                transform: scale(1);
+            }
+            to { 
+                box-shadow: 0 6px 30px rgba(255, 192, 203, 0.8);
+                transform: scale(1.02);
+            }
+        }
+        
+        /* Визуальные эффекты при поглощении */
+        .fade-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8), rgba(173, 216, 230, 0.4));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 15;
+            animation: fadeParticle 1s ease-out forwards;
+        }
+        
+        @keyframes fadeParticle {
+            0% {
+                opacity: 1;
+                transform: scale(1) translate(0, 0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2) translate(var(--dx), var(--dy));
+            }
+        }
+        
+        .absorption-glow {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(173, 216, 230, 0.3), transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 12;
+            animation: absorptionGlow 0.8s ease-out forwards;
+        }
+        
+        @keyframes absorptionGlow {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(2);
+            }
+        }
+        
+        .rain-drop {
+            position: absolute;
+            width: 2px;
+            height: 15px;
+            background: linear-gradient(180deg, rgba(236, 240, 241, 0.8), rgba(236, 240, 241, 0.2));
+            animation: rainFall 1.5s linear infinite;
+            border-radius: 50%;
+        }
+        
+        @keyframes rainFall {
+            from { 
+                top: -15px; 
+                opacity: 1; 
+            }
+            to { 
+                top: 700px; 
+                opacity: 0; 
+            }
+        }
+        
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: rgba(173, 216, 230, 0.2);
+            padding: 8px 12px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        #musicProgress {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 250px;
+            height: 8px;
+            background: rgba(52, 73, 94, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(236, 240, 241, 0.3);
+        }
+        
+        #progressBar {
+            height: 100%;
+            background: linear-gradient(90deg, rgba(173, 216, 230, 0.8), rgba(255, 192, 203, 0.8));
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(173, 216, 230, 0.4);
+            border-radius: 4px;
+        }
+        
+        #musicInfo {
+            position: absolute;
+            top: 35px;
+            right: 20px;
+            color: rgba(236, 240, 241, 0.8);
+            font-size: 8px;
+            text-align: right;
+        }
+        
+        #combo {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            color: rgba(255, 218, 185, 1);
+            font-size: 12px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: rgba(255, 192, 203, 0.2);
+            padding: 6px 10px;
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(44, 62, 80, 0.95));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #ecf0f1;
+            text-align: center;
+            backdrop-filter: blur(15px);
+            z-index: 1000;
+        }
+        
+        #startBtn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 30px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+            pointer-events: auto;
+        }
+        
+        #startBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.6);
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #3498db, #e74c3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 12px;
+            margin-bottom: 20px;
+            color: #bdc3c7;
+        }
+        
+        .instructions {
+            font-size: 10px;
+            max-width: 500px;
+            line-height: 1.8;
+            color: #95a5a6;
+            margin-bottom: 20px;
+        }
+        
+        .collected-word {
+            position: absolute;
+            color: #2ecc71;
+            font-size: 18px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: collect 1.2s ease-out forwards;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 25;
+        }
+        
+        @keyframes collect {
+            0% {
+                opacity: 1;
+                transform: scale(0.8) translateY(0px);
+                filter: brightness(1);
+            }
+            30% {
+                opacity: 1;
+                transform: scale(1.4) translateY(-20px);
+                filter: brightness(1.5);
+            }
+            70% {
+                opacity: 0.8;
+                transform: scale(1.2) translateY(-40px);
+                filter: brightness(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1) translateY(-70px);
+                filter: brightness(1);
+            }
+        }
+        
+        #gameOver {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(44, 62, 80, 0.9));
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #ecf0f1;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .share-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+        
+        .share-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Дополнительные атмосферные элементы */
+        .atmosphere-element {
+            position: absolute;
+            z-index: 3;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        
+        .atmosphere-1 {
+            top: 50px;
+            right: 100px;
+            width: 150px;
+            height: 100px;
+            background-image: url('public/images/IMG_3138.JPG');
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            animation: float1 6s ease-in-out infinite;
+            filter: blur(1px) brightness(0.7);
+        }
+        
+        .atmosphere-2 {
+            bottom: 80px;
+            left: 50px;
+            width: 120px;
+            height: 80px;
+            background-image: url('public/images/IMG_3139.JPG');
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            animation: float2 8s ease-in-out infinite;
+            filter: blur(1px) brightness(0.6);
+        }
+        
+        @keyframes float1 {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-20px) rotate(2deg); opacity: 0.5; }
+        }
+        
+        @keyframes float2 {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
+            50% { transform: translateY(-15px) rotate(-1deg); opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1200" height="800"></canvas>
+        
+        <!-- Три дорожки для движения строчек -->
+        <div class="track track-1"></div>
+        <div class="track track-2"></div>
+        <div class="track track-3"></div>
+        
+        <!-- Персонаж-бегун -->
+        <div id="player">
+            <div class="runner"></div>
+        </div>
+        
+        <!-- Атмосферные элементы -->
+        <div class="atmosphere-element atmosphere-1"></div>
+        <div class="atmosphere-element atmosphere-2"></div>
+        
+        <div id="ui">
+            <div id="score">
+                Строчек собрано: <span id="scoreValue">0</span>
+            </div>
+            <div id="combo">
+                Ритм: x<span id="comboValue">1</span>
+            </div>
+            <div id="musicProgress">
+                <div id="progressBar"></div>
+            </div>
+            <div id="musicInfo">
+                🎵 Кажется - habba-po
+            </div>
+        </div>
+        
+        <div id="startScreen">
+            <h1>КАЖЕТСЯ</h1>
+            <div class="subtitle">Кинематографический опыт по треку habba-po</div>
+            <div class="instructions">
+                🎬 Строчки песни движутся по трём дорожкам<br>
+                ⌨️ Управление: стрелки ↑ ↓ или W/S<br>
+                🏃 Переключайся между дорожками и собирай текст<br>
+                ✨ Кинематографическое путешествие через трек
+            </div>
+            <button id="startBtn">🎬 ЗАПУСТИТЬ ОПЫТ</button>
+        </div>
+        
+        <div id="gameOver">
+            <h2>Опыт завершен!</h2>
+            <p>Строчек собрано: <span id="finalScore">0</span></p>
+            <p>Максимальный ритм: x<span id="maxCombo">1</span></p>
+            <div style="font-size: 10px; color: #bdc3c7; margin: 20px 0;">
+                Ты прошел путь через трек "Кажется"<br>
+                Каждая строчка - это часть истории
+            </div>
+            <div>
+                <button class="share-btn" onclick="shareResult()">📱 Поделиться опытом</button>
+                <button class="share-btn" onclick="listenTrack()">🎵 Слушать трек</button>
+                <button class="share-btn" onclick="restartGame()">🔄 Пройти заново</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Фоновая музыка -->
+    <audio id="backgroundMusic" preload="auto" controls style="display: none;">
+        <source src="music/kazhetsya/m4a/кажется2.m4a" type="audio/mp4">
+        <source src="music/kazhetsya/m4a/кажется2.m4a" type="audio/aac">
+        <!-- Fallback для локального тестирования -->
+        <p>Музыка недоступна - откройте файл через HTTP сервер</p>
+    </audio>
+
+    <script>
+        // Текст трека "Кажется" по строчкам с тайминами (3 дорожки)
+        const trackLyrics = [
+            // Intro
+            { text: "Кажется — начинается дождь", timing: 2, track: 2, type: "intro" },
+            { text: "Даже сейчас летом под дождем мы бегаем, как дети", timing: 5, track: 1, type: "intro" },
+            { text: "Пока время — проносится сквозь", timing: 8, track: 3, type: "intro" },
+            { text: "Сохраню тепло и память на этом куплете", timing: 11, track: 2, type: "intro" },
+            
+            // Куплет 1
+            { text: "Что смывает дождь, а скажи мне?", timing: 15, track: 1, type: "verse" },
+            { text: "Может быть, следы ошибок или лица, что забыли", timing: 18, track: 3, type: "verse" },
+            { text: "Может быть, слова, что не сказали, мысли, что не предложили", timing: 21, track: 2, type: "verse" },
+            { text: "Или все грехи, чтобы наконец-то стать счастливым", timing: 25, track: 1, type: "verse" },
+            
+            { text: "Помню на веранде с дедом, наблюдали небо", timing: 30, track: 3, type: "verse" },
+            { text: "Как оно чернело, а воздух становился свежим", timing: 33, track: 2, type: "verse" },
+            { text: "Мы молча сидели — слушая порывы ветра", timing: 36, track: 1, type: "verse" },
+            { text: "Я прошу, будь счастлив, где бы ты там ни был", timing: 39, track: 3, type: "verse" },
+            
+            { text: "Теперь я сижу на том же месте, к сожалению, сам", timing: 44, track: 2, type: "verse" },
+            { text: "Где мой дед читал погоду — по этим облакам", timing: 47, track: 1, type: "verse" },
+            { text: "Он передал не просто память, а способность понимать", timing: 50, track: 3, type: "verse" },
+            { text: "Правда в том, что дождь не выбирает, что ему смывать", timing: 53, track: 2, type: "verse" },
+            
+            // Припев
+            { text: "Кажется — начинается дождь", timing: 58, track: 2, type: "chorus" },
+            { text: "Даже сейчас летом под дождем мы бегаем, как дети", timing: 61, track: 1, type: "chorus" },
+            { text: "Пока время — проносится сквозь", timing: 64, track: 3, type: "chorus" },
+            { text: "Сохраню тепло и память на этом куплете", timing: 67, track: 2, type: "chorus" },
+            
+            // Куплет 2
+            { text: "Все пройдет, я сохраню это надолго", timing: 74, track: 1, type: "verse" },
+            { text: "Я умею ждать, но не пылятся мои полки", timing: 77, track: 3, type: "verse" },
+            { text: "Очень яркий свет от солнца даже после шторма", timing: 80, track: 2, type: "verse" },
+            { text: "Да, мы верим в лучшее, хоть натворили много", timing: 83, track: 1, type: "verse" },
+            
+            { text: "И да, был ранен в спину, хоть и был не виноват", timing: 88, track: 3, type: "verse" },
+            { text: "Жизнь — игра, это не фильм, тут нужно выбирать", timing: 91, track: 2, type: "verse" },
+            { text: "Мы умеем любить сильно, но нам трудно отпускать", timing: 94, track: 1, type: "verse" },
+            { text: "Соберу все силы, пущу ветер в паруса", timing: 97, track: 3, type: "verse" },
+            
+            // Припев финальный
+            { text: "Кажется — начинается дождь", timing: 102, track: 2, type: "chorus" },
+            { text: "Даже сейчас летом под дождем мы бегаем, как дети", timing: 105, track: 1, type: "chorus" },
+            { text: "Пока время — проносится сквозь", timing: 108, track: 3, type: "chorus" },
+            { text: "Сохраню тепло и память на этом куплете", timing: 111, track: 2, type: "chorus" }
+        ];
+        
+        let game = {
+            score: 0,
+            combo: 1,
+            maxCombo: 1,
+            playerTrack: 2, // Текущая дорожка игрока (1, 2, 3)
+            lyrics: [], // Активные строчки на экране
+            rainDrops: [],
+            isRunning: false,
+            canvas: null,
+            ctx: null,
+            gameTime: 0,
+            maxGameTime: 120,
+            lastLyricTime: 0,
+            currentLyricIndex: 0,
+            trackPositions: [200, 340, 480] // Y-позиции для дорожек
+        };
+        
+        // Позиции дорожек в пикселях  
+        const TRACK_POSITIONS = {
+            1: 220,
+            2: 350,
+            3: 480
+        };
+        
+        function initGame() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            game.canvas = canvas;
+            game.ctx = ctx;
+            
+            // Рисуем фон на canvas
+            drawBackground();
+            
+            // Устанавливаем начальную позицию игрока
+            updatePlayerPosition();
+            
+            // Обработчики событий
+            document.addEventListener('keydown', handleKeyPress);
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            
+            // Touch управление для мобильных
+            document.addEventListener('touchstart', handleTouch);
+            document.addEventListener('touchmove', handleTouch);
+            
+            // Обработчики аудио
+            const music = document.getElementById('backgroundMusic');
+            music.addEventListener('ended', () => {
+                if (game.isRunning) {
+                    endGame();
+                }
+            });
+            
+            music.addEventListener('loadeddata', () => {
+                game.maxGameTime = Math.ceil(music.duration);
+                console.log('Трек загружен, длительность:', music.duration, 'секунд');
+            });
+        }
+        
+        function drawBackground() {
+            const ctx = game.ctx;
+            
+            // Очищаем canvas
+            ctx.clearRect(0, 0, 1200, 800);
+            
+            // Полупрозрачный слой поверх дождевого фона
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, 800);
+            bgGradient.addColorStop(0, 'rgba(44, 62, 80, 0.4)');
+            bgGradient.addColorStop(0.3, 'rgba(52, 73, 94, 0.5)');
+            bgGradient.addColorStop(0.7, 'rgba(44, 62, 80, 0.4)');
+            bgGradient.addColorStop(1, 'rgba(26, 37, 47, 0.6)');
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, 1200, 800);
+            
+            // Атмосферные элементы (городские силуэты)
+            ctx.fillStyle = 'rgba(26, 37, 47, 0.7)';
+            // Здания на горизонте
+            for (let i = 0; i < 8; i++) {
+                const x = i * 150 + Math.random() * 50;
+                const height = 80 + Math.random() * 120;
+                const width = 80 + Math.random() * 60;
+                ctx.fillRect(x, 200 - height, width, height);
+                
+                // Окна в зданиях
+                ctx.fillStyle = 'rgba(243, 156, 18, 0.6)';
+                for (let j = 0; j < 3; j++) {
+                    for (let k = 0; k < Math.floor(height / 25); k++) {
+                        if (Math.random() > 0.3) {
+                            ctx.fillRect(x + 15 + j * 20, 200 - height + 10 + k * 25, 12, 15);
+                        }
+                    }
+                }
+                ctx.fillStyle = 'rgba(26, 37, 47, 0.7)';
+            }
+            
+            // Дорожки для строчек (стилизованные линии)
+            ctx.strokeStyle = 'rgba(52, 152, 219, 0.5)';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([15, 25]);
+            
+            // Три дорожки с эффектом свечения
+            for (let i = 1; i <= 3; i++) {
+                const y = TRACK_POSITIONS[i] + 40;
+                
+                // Основная линия
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(1200, y);
+                ctx.stroke();
+                
+                // Эффект свечения
+                ctx.strokeStyle = 'rgba(52, 152, 219, 0.2)';
+                ctx.lineWidth = 8;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(1200, y);
+                ctx.stroke();
+                
+                ctx.strokeStyle = 'rgba(52, 152, 219, 0.5)';
+                ctx.lineWidth = 3;
+            }
+            ctx.setLineDash([]);
+        }
+        
+        function updatePlayerPosition() {
+            const player = document.getElementById('player');
+            player.style.top = TRACK_POSITIONS[game.playerTrack] + 'px';
+        }
+        
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            game.isRunning = true;
+            game.gameTime = 0;
+            game.currentLyricIndex = 0;
+            
+            // Запуск фоновой музыки
+            const music = document.getElementById('backgroundMusic');
+            music.currentTime = 0;
+            music.play().catch(e => {
+                console.log('Автопроигрывание заблокировано браузером. Музыка запустится после взаимодействия.');
+            });
+            
+            gameLoop();
+            
+            // Дождь для атмосферы
+            const rainInterval = setInterval(() => {
+                if (!game.isRunning) {
+                    clearInterval(rainInterval);
+                    return;
+                }
+                addRainDrop();
+            }, 80);
+            
+            // Основной таймер игры - синхронизация с музыкой и добавление строчек
+            const gameTimer = setInterval(() => {
+                if (!game.isRunning) {
+                    clearInterval(gameTimer);
+                    return;
+                }
+                
+                // Обновляем прогресс на основе музыки
+                updateProgress();
+                
+                // Проверяем, нужно ли добавить новую строчку
+                checkForNewLyrics();
+                
+                // Игра автоматически завершится когда закончится трек (см. music.addEventListener('ended'))
+            }, 100); // Обновляем каждые 100мс для плавной синхронизации
+        }
+        
+        function checkForNewLyrics() {
+            // Проверяем, есть ли строчки для показа в текущее время
+            while (game.currentLyricIndex < trackLyrics.length) {
+                const lyric = trackLyrics[game.currentLyricIndex];
+                
+                if (lyric.timing <= game.gameTime) {
+                    addLyric(lyric);
+                    game.currentLyricIndex++;
+                } else {
+                    break;
+                }
+            }
+        }
+        
+        function addLyric(lyricData) {
+            if (!game.isRunning) return;
+            
+            const lyricElement = document.createElement('div');
+            lyricElement.className = `lyric-line ${lyricData.type}`;
+            lyricElement.textContent = lyricData.text;
+            lyricElement.style.top = TRACK_POSITIONS[lyricData.track] + 20 + 'px';
+            lyricElement.style.left = '1200px';
+            
+            lyricElement.dataset.track = lyricData.track;
+            lyricElement.dataset.type = lyricData.type;
+            
+            document.getElementById('gameContainer').appendChild(lyricElement);
+            game.lyrics.push(lyricElement);
+            
+            // Удаляем строчку через 7 секунд
+            setTimeout(() => {
+                if (lyricElement.parentNode) {
+                    lyricElement.parentNode.removeChild(lyricElement);
+                    game.lyrics = game.lyrics.filter(l => l !== lyricElement);
+                }
+            }, 7000);
+        }
+        
+        function handleKeyPress(e) {
+            if (!game.isRunning) return;
+            
+            // Управление вверх-вниз между дорожками (1-3)
+            if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') && game.playerTrack > 1) {
+                game.playerTrack--;
+                updatePlayerPosition();
+            } else if ((e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') && game.playerTrack < 3) {
+                game.playerTrack++;
+                updatePlayerPosition();
+            }
+        }
+        
+        function handleTouch(e) {
+            if (!game.isRunning) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const containerRect = document.getElementById('gameContainer').getBoundingClientRect();
+            const touchY = touch.clientY - containerRect.top;
+            
+            // Определяем на какую дорожку переместиться (3 дорожки)
+            if (touchY < 300) {
+                game.playerTrack = 1;
+            } else if (touchY < 450) {
+                game.playerTrack = 2;
+            } else {
+                game.playerTrack = 3;
+            }
+            
+            updatePlayerPosition();
+        }
+        
+        function addRainDrop() {
+            if (!game.isRunning) return;
+            
+            const drop = document.createElement('div');
+            drop.className = 'rain-drop';
+            drop.style.left = Math.random() * 1200 + 'px';
+            drop.style.animationDuration = (Math.random() * 0.8 + 0.7) + 's';
+            
+            document.getElementById('gameContainer').appendChild(drop);
+            
+            setTimeout(() => {
+                if (drop.parentNode) {
+                    drop.parentNode.removeChild(drop);
+                }
+            }, 1800);
+        }
+        
+        function checkCollisions() {
+            const player = document.getElementById('player');
+            const playerRect = player.getBoundingClientRect();
+            
+            game.lyrics.forEach(lyric => {
+                const lyricRect = lyric.getBoundingClientRect();
+                const lyricTrack = parseInt(lyric.dataset.track);
+                
+                // Проверяем коллизию только если строчка на той же дорожке что и игрок
+                if (lyricTrack === game.playerTrack &&
+                    playerRect.left < lyricRect.right &&
+                    playerRect.right > lyricRect.left &&
+                    playerRect.top < lyricRect.bottom &&
+                    playerRect.bottom > lyricRect.top) {
+                    collectLyric(lyric);
+                }
+            });
+        }
+        
+        function collectLyric(lyricElement) {
+            if (!lyricElement.parentNode) return;
+            
+            const lyricType = lyricElement.dataset.type;
+            let points = 1;
+            
+            // Разные очки за разные типы строчек
+            switch(lyricType) {
+                case 'chorus': points = 3; break;
+                case 'intro': points = 2; break;
+                case 'verse': points = 1; break;
+            }
+            
+            // Увеличиваем комбо
+            game.combo = Math.min(10, game.combo + 1);
+            game.maxCombo = Math.max(game.maxCombo, game.combo);
+            game.lastLyricTime = Date.now();
+            
+            // Добавляем очки с учетом комбо
+            game.score += points * game.combo;
+            
+            // Создаем fade эффекты
+            createAbsorptionEffects(lyricElement);
+            
+            // Удаляем строчку сразу
+            lyricElement.parentNode.removeChild(lyricElement);
+            game.lyrics = game.lyrics.filter(l => l !== lyricElement);
+            
+            // Показываем эффект сбора
+            showCollectEffect(lyricElement, points * game.combo);
+            
+            updateScore();
+            updateCombo();
+        }
+        
+        function createAbsorptionEffects(lyricElement) {
+            const rect = lyricElement.getBoundingClientRect();
+            const containerRect = document.getElementById('gameContainer').getBoundingClientRect();
+            
+            const centerX = rect.left - containerRect.left + rect.width / 2;
+            const centerY = rect.top - containerRect.top + rect.height / 2;
+            
+            // Создаем свечение
+            const glow = document.createElement('div');
+            glow.className = 'absorption-glow';
+            glow.style.left = (centerX - 50) + 'px';
+            glow.style.top = (centerY - 50) + 'px';
+            document.getElementById('gameContainer').appendChild(glow);
+            
+            // Создаем частицы
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'fade-particle';
+                
+                const angle = (i / 8) * Math.PI * 2;
+                const distance = 60 + Math.random() * 40;
+                const dx = Math.cos(angle) * distance;
+                const dy = Math.sin(angle) * distance;
+                
+                particle.style.left = centerX + 'px';
+                particle.style.top = centerY + 'px';
+                particle.style.setProperty('--dx', dx + 'px');
+                particle.style.setProperty('--dy', dy + 'px');
+                
+                document.getElementById('gameContainer').appendChild(particle);
+                
+                // Удаляем частицу после анимации
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 1000);
+            }
+            
+            // Удаляем свечение после анимации
+            setTimeout(() => {
+                if (glow.parentNode) {
+                    glow.parentNode.removeChild(glow);
+                }
+            }, 800);
+        }
+        
+        function showCollectEffect(wordElement, points) {
+            const effect = document.createElement('div');
+            effect.className = 'collected-word';
+            effect.textContent = '+' + points;
+            effect.style.left = wordElement.style.left;
+            effect.style.top = wordElement.offsetTop + 'px';
+            
+            document.getElementById('gameContainer').appendChild(effect);
+            
+            setTimeout(() => {
+                if (effect.parentNode) {
+                    effect.parentNode.removeChild(effect);
+                }
+            }, 1000);
+        }
+        
+        function updateScore() {
+            document.getElementById('scoreValue').textContent = game.score;
+        }
+        
+        function updateCombo() {
+            document.getElementById('comboValue').textContent = game.combo;
+        }
+        
+        function updateProgress() {
+            const music = document.getElementById('backgroundMusic');
+            if (music && music.duration) {
+                const progress = (music.currentTime / music.duration) * 100;
+                document.getElementById('progressBar').style.width = progress + '%';
+                
+                // Обновляем game.gameTime на основе музыки для синхронизации
+                game.gameTime = Math.floor(music.currentTime);
+            }
+        }
+        
+        function gameLoop() {
+            if (!game.isRunning) return;
+            
+            checkCollisions();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function endGame() {
+            game.isRunning = false;
+            
+            // Останавливаем музыку
+            const music = document.getElementById('backgroundMusic');
+            music.pause();
+            
+            // Показываем экран окончания игры
+            document.getElementById('finalScore').textContent = game.score;
+            document.getElementById('maxCombo').textContent = game.maxCombo;
+            document.getElementById('gameOver').style.display = 'flex';
+        }
+        
+        function shareResult() {
+            const text = `🎬 Я прошел кинематографический опыт по треку "Кажется" от habba-po! Собрал ${game.score} строчек с ритмом x${game.maxCombo}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Кажется - Кинематографический опыт | habba-po',
+                    text: text,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(text + ' ' + window.location.href);
+                alert('Результат скопирован в буфер обмена!');
+            }
+        }
+        
+        function listenTrack() {
+            // Здесь будет ссылка на трек в SoundCloud/Spotify
+            window.open('https://soundcloud.com/habba-po', '_blank');
+        }
+        
+        function restartGame() {
+            // Сброс игры
+            game.score = 0;
+            game.combo = 1;
+            game.maxCombo = 1;
+            game.playerTrack = 2; // Центральная дорожка
+            game.currentLyricIndex = 0;
+            
+            // Очищаем все строчки на экране
+            game.lyrics.forEach(lyric => {
+                if (lyric.parentNode) lyric.parentNode.removeChild(lyric);
+            });
+            game.lyrics = [];
+            game.gameTime = 0;
+            
+            // Возвращаем игрока на первую дорожку
+            updatePlayerPosition();
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('progressBar').style.width = '0%';
+            
+            updateScore();
+            updateCombo();
+            
+            startGame();
+        }
+        
+        // Инициализация игры
+        initGame();
+    </script>
+</body>
+</html>
