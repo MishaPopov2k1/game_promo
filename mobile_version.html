@@ -248,26 +248,33 @@
 
         /* Удалены тяжелые стили частиц для производительности */
 
-        /* UI элементы */
+        /* UI элементы - современный игровой стиль */
         .ui-panel {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
+            top: 15px;
+            left: 15px;
+            right: 15px;
             display: flex;
             justify-content: space-between;
+            gap: 8px;
             z-index: 20;
         }
 
         .score-info {
-            background: rgba(44, 62, 80, 0.6);
-            padding: 10px 15px;
-            border-radius: 20px;
+            background: linear-gradient(135deg, 
+                rgba(23, 32, 42, 0.95) 0%,
+                rgba(44, 62, 80, 0.9) 100%);
+            padding: 8px 12px;
+            border-radius: 12px;
             color: #ecf0f1;
-            font-size: 14px;
-            /* backdrop-filter: blur(8px); */ /* Убираем blur для производительности */
-            border: 2px solid rgba(70, 130, 180, 0.4);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            box-shadow: 
+                0 2px 8px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            min-width: 60px;
+            text-align: center;
         }
 
         .progress-bar {
@@ -420,26 +427,43 @@
         }
 
         .control-btn {
-            width: 60px;
-            height: 60px;
-            background: rgba(70, 130, 180, 0.4);
-            border: 2px solid rgba(70, 130, 180, 0.7);
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, 
+                rgba(52, 152, 219, 0.8) 0%,
+                rgba(41, 128, 185, 0.9) 100%);
+            border: 3px solid rgba(255, 255, 255, 0.6);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #ecf0f1;
-            font-size: 20px;
-            /* backdrop-filter: blur(8px); */ /* Убираем blur для производительности */
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.15s ease;
+            box-shadow: 
+                0 6px 20px rgba(52, 152, 219, 0.4),
+                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, 
+                rgba(52, 152, 219, 0.9) 0%,
+                rgba(41, 128, 185, 1) 100%);
         }
 
         .control-btn:active {
-            transform: scale(0.9);
-            background: rgba(70, 130, 180, 0.6);
-            box-shadow: 0 6px 20px rgba(70, 130, 180, 0.5);
+            transform: scale(0.95) translateY(0);
+            background: linear-gradient(135deg, 
+                rgba(41, 128, 185, 1) 0%,
+                rgba(30, 115, 170, 1) 100%);
+            box-shadow: 
+                0 4px 15px rgba(52, 152, 219, 0.6),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3);
         }
 
         /* Панель синхронизации */
@@ -690,18 +714,15 @@
         <!-- UI панель -->
         <div class="ui-panel">
             <div class="score-info">
-                <div>Собрано: <span id="collectedCount">0</span></div>
-                <div>Комбо: <span id="comboCount">1</span>x</div>
+                <div style="color: #ecf0f1;">📝 Собрано: <span id="collectedCount">0</span></div>
+                <div style="color: #f39c12;">⚡ Комбо: <span id="comboCount">1</span>x</div>
             </div>
             <div class="score-info">
-                <div>Очки: <span id="scoreCount">0</span></div>
-                <div style="color: #3498db;">Уровень: <span id="levelIndicator">1</span></div>
+                <div style="color: #e74c3c;">🎯 Очки: <span id="scoreCount">0</span></div>
+                <div style="color: #3498db;">🎮 Уровень: <span id="levelIndicator">1</span></div>
             </div>
             <div class="score-info" id="coinPanel">
                 <div style="color: #f1c40f;">💡 Идей: <span id="coinCount">0</span></div>
-            </div>
-            <div class="score-info">
-                <button onclick="toggleSyncPanel()" style="background: rgba(52,152,219,0.8); color: white; border: none; padding: 5px; border-radius: 5px; font-size: 10px;">🎵 Синхр</button>
             </div>
         </div>
         
@@ -762,7 +783,12 @@
     <script>
         // Разбитые на короткие фразы строки трека
         const trackPhrases = [
-            // Припев 1 (3 сек)
+            // Мгновенный старт - фразы появляются сразу
+            { text: "🎵 Трек начинается", timing: 0, type: "intro", order: 0 },
+            { text: "Слушаем вместе", timing: 1, type: "intro", order: 0 },
+            { text: "habba-po", timing: 2, type: "intro", order: 0 },
+            
+            // Припев 1 (3 сек)  
             { text: "Кажется", timing: 3, type: "chorus", order: 1 },
             { text: "начинается дождь", timing: 4, type: "chorus", order: 2 },
             { text: "Даже сейчас летом", timing: 6, type: "chorus", order: 3 },
@@ -915,9 +941,29 @@
         }
 
         function setupControls() {
-            // Кнопки
-            document.getElementById('leftBtn').addEventListener('click', () => movePlayer(-1));
-            document.getElementById('rightBtn').addEventListener('click', () => movePlayer(1));
+            // Кнопки - добавляем несколько типов событий для надежности
+            const leftBtn = document.getElementById('leftBtn');
+            const rightBtn = document.getElementById('rightBtn');
+            
+            // Click события
+            leftBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                movePlayer(-1);
+            });
+            rightBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                movePlayer(1);
+            });
+            
+            // Touch события для мобильных
+            leftBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                movePlayer(-1);
+            });
+            rightBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                movePlayer(1);
+            });
             
             // Тачи и свайпы
             let startX = 0;
@@ -993,6 +1039,9 @@
             
             // Запускаем генерацию идей с первого уровня
             startCoinGeneration();
+            
+            // Сразу добавляем первые фразы без задержки
+            checkForNewPhrases();
             
             // Основной игровой цикл (оптимизированный для мобильных)
             game.gameLoop = setInterval(() => {
