@@ -553,7 +553,7 @@
             }
         }
 
-        /* Монетки */
+        /* Идеи */
         .coin {
             position: absolute;
             width: 30px;
@@ -702,7 +702,7 @@
                 <div style="color: #3498db;">Уровень: <span id="levelIndicator">1</span></div>
             </div>
             <div class="score-info" id="coinPanel">
-                <div style="color: #f1c40f;">💰 Монеток: <span id="coinCount">0</span></div>
+                <div style="color: #f1c40f;">💡 Идей: <span id="coinCount">0</span></div>
             </div>
             <div class="score-info">
                 <button onclick="toggleSyncPanel()" style="background: rgba(52,152,219,0.8); color: white; border: none; padding: 5px; border-radius: 5px; font-size: 10px;">🎵 Синхр</button>
@@ -735,9 +735,9 @@
         <div class="subtitle">Мобильная версия | habba-po</div>
         <div class="mobile-instructions">
             📱 Строчки падают сверху<br>
-            💰 Собирай золотые монетки — главная цель!<br>
+            💡 Собирай новые идеи — главная цель!<br>
             💙 Также собирай фразы трека по порядку<br>
-            🎵 3 уровня сложности с разной частотой монеток<br>
+            🎵 3 уровня сложности с разной частотой идей<br>
             👆 Тапай или свайпай влево/вправо<br>
             ✨ Почувствуй ритм и атмосферу
         </div>
@@ -752,7 +752,7 @@
             <div>Финальный счет: <span id="finalScore">0</span></div>
             <div>Макс. комбо: <span id="finalCombo">1</span></div>
             <div style="color: #3498db;">Уровень достигнут: <span id="finalLevel">1</span></div>
-            <div style="color: #f1c40f;">💰 Монеток: <span id="finalCoins">0</span></div>
+            <div style="color: #f1c40f;">💡 Идей: <span id="finalCoins">0</span></div>
         </div>
         <button id="restartBtn">🔄 ЕЩЁ РАЗ</button>
     </div>
@@ -879,10 +879,10 @@
             combo: 1,
             maxCombo: 1,
             collected: 0,
-            coins: 0, // собранные монетки
+            coins: 0, // собранные идеи
             playerX: 50, // процент от ширины экрана
             phrases: [], // активные фразы на экране
-            coinElements: [], // активные монетки на экране
+            coinElements: [], // активные идеи на экране
             rainDrops: [],
             isRunning: false,
             canvas: null,
@@ -995,7 +995,7 @@
             music.currentTime = 0;
             music.play().catch(e => console.log('Автозапуск музыки заблокирован'));
             
-            // Запускаем генерацию монеток с первого уровня
+            // Запускаем генерацию идей с первого уровня
             startCoinGeneration();
             
             // Основной игровой цикл
@@ -1027,7 +1027,7 @@
             // Проверяем коллизии с фразами в области игрока
             checkPlayerCollisions();
             
-            // Проверяем коллизии с монетками на всех уровнях
+            // Проверяем коллизии с идеями на всех уровнях
             checkCoinCollisions();
             
             // Убираем старые фразы
@@ -1041,7 +1041,7 @@
                 return true;
             });
             
-            // Убираем старые монетки
+            // Убираем старые идеи
             game.coinElements = game.coinElements.filter(coin => {
                 if (coin.offsetTop > window.innerHeight) {
                     if (coin.parentNode) {
@@ -1130,7 +1130,7 @@
             // Показываем уведомление о смене уровня
             const transition = document.createElement('div');
             transition.className = 'level-transition';
-            transition.innerHTML = '💰 УРОВЕНЬ 3 💰<br/>ХАОС И МОНЕТКИ!<br/>Сверхскорость и искажения!';
+            transition.innerHTML = '💡 УРОВЕНЬ 3 💡<br/>ХАОС И ИДЕИ!<br/>Сверхскорость и искажения!';
             
             document.getElementById('gameContainer').appendChild(transition);
             
@@ -1145,7 +1145,7 @@
         }
 
         function startCoinGeneration() {
-            // Генерируем монетки на всех уровнях с разной частотой
+            // Генерируем идеи на всех уровнях с разной частотой
             const coinInterval = setInterval(() => {
                 if (!game.isRunning) {
                     clearInterval(coinInterval);
@@ -1209,14 +1209,14 @@
         function collectCoin(coinElement) {
             if (!coinElement.parentNode) return;
             
-            // Увеличиваем счетчик монеток и даем бонусные очки
+            // Увеличиваем счетчик идей и даем бонусные очки
             game.coins++;
-            game.score += 50 * game.combo; // Монетки дают много очков!
+            game.score += 50 * game.combo; // Идеи дают много очков!
             
-            // Создаем эффект сбора монетки
+            // Создаем эффект сбора идеи
             createCoinEffects(coinElement);
             
-            // Удаляем монетку
+            // Удаляем идею
             coinElement.classList.add('coin-collected');
             game.coinElements = game.coinElements.filter(c => c !== coinElement);
             
@@ -1380,7 +1380,7 @@
                 levelIndicator.textContent = game.level;
             }
             
-            // Обновляем счетчик монеток (только если панель видна)
+            // Обновляем счетчик идей (только если панель видна)
             const coinCount = document.getElementById('coinCount');
             if (coinCount) {
                 coinCount.textContent = game.coins;
@@ -1509,7 +1509,7 @@
             });
             game.phrases = [];
             
-            // Очищаем все монетки на экране
+            // Очищаем все идеи на экране
             game.coinElements.forEach(coin => {
                 if (coin.parentNode) coin.parentNode.removeChild(coin);
             });

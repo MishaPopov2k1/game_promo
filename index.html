@@ -49,13 +49,68 @@
         
         .word {
             position: absolute;
-            background: rgba(52, 152, 219, 0.9);
+            background: linear-gradient(135deg, 
+                rgba(142, 68, 173, 0.95) 0%, 
+                rgba(74, 144, 226, 0.95) 50%, 
+                rgba(52, 152, 219, 0.95) 100%);
             color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            animation: fall 3s linear infinite;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            animation: fall 3s linear infinite, glow 2s ease-in-out infinite alternate;
             cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 
+                0 4px 15px rgba(142, 68, 173, 0.4),
+                0 8px 25px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .word:hover {
+            transform: scale(1.1);
+            box-shadow: 
+                0 6px 20px rgba(142, 68, 173, 0.6),
+                0 12px 35px rgba(0, 0, 0, 0.4);
+        }
+        
+        .word.collected {
+            animation: collectEffect 0.6s ease-out forwards;
+        }
+        
+        @keyframes glow {
+            0% { 
+                box-shadow: 
+                    0 4px 15px rgba(142, 68, 173, 0.4),
+                    0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+            100% { 
+                box-shadow: 
+                    0 4px 20px rgba(142, 68, 173, 0.7),
+                    0 8px 30px rgba(0, 0, 0, 0.4),
+                    0 0 40px rgba(142, 68, 173, 0.3);
+            }
+        }
+        
+        @keyframes collectEffect {
+            0% { 
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+            30% { 
+                transform: scale(1.3) rotate(10deg);
+                opacity: 0.8;
+                color: #f1c40f;
+                text-shadow: 0 0 10px #f1c40f;
+            }
+            100% { 
+                transform: scale(0.1) rotate(360deg);
+                opacity: 0;
+                color: #f1c40f;
+            }
         }
         
         @keyframes fall {
@@ -145,8 +200,22 @@
     </div>
 
     <script>
-        // Слова из трека "Кажется"
-        const gameWords = [
+        // Расписание слов по треку (время в секундах)
+        const trackSchedule = [
+            { time: 1, words: ['Кажется'] },
+            { time: 15, words: ['Что', 'смывает', 'дождь'] },
+            { time: 27, words: ['Помню', 'на', 'веранде', 'с', 'дедом'] },
+            { time: 40, words: ['Теперь', 'сижу', 'на', 'том', 'же', 'месте'] },
+            { time: 52, words: ['Кажется'] },
+            { time: 66, words: ['Кажется'] },
+            { time: 77, words: ['Все', 'пройдет', 'я', 'сохраню', 'это', 'надолго'] },
+            { time: 89, words: ['И', 'да', 'был', 'ранен', 'в', 'спину'] },
+            { time: 101, words: ['Кажется'] },
+            { time: 114, words: ['Финальный', 'припев', 'Кажется'] }
+        ];
+        
+        // Дополнительные слова для случайного появления
+        const extraWords = [
             'дождь', 'память', 'счастье', 'веранда', 'дед', 'небо', 'тепло', 
             'время', 'дети', 'лето', 'ветер', 'облака', 'солнце', 'шторм',
             'любить', 'отпускать', 'мечты', 'детство', 'воспоминания'
@@ -159,7 +228,9 @@
             rainDrops: [],
             isRunning: false,
             canvas: null,
-            ctx: null
+            ctx: null,
+            startTime: null,
+            scheduleIndex: 0
         };
         
         function initGame() {
@@ -175,22 +246,45 @@
         function startGame() {
             document.getElementById('startScreen').style.display = 'none';
             game.isRunning = true;
+            game.startTime = Date.now();
+            game.scheduleIndex = 0;
             gameLoop();
             
-            // Добавляем слова каждые 2 секунды
-            setInterval(addWord, 2000);
+            // Запускаем синхронизацию по расписанию
+            setInterval(checkSchedule, 100);
             // Добавляем капли дождя
             setInterval(addRainDrop, 100);
         }
         
-        function addWord() {
+        function checkSchedule() {
+            if (!game.isRunning || !game.startTime) return;
+            
+            const currentTime = (Date.now() - game.startTime) / 1000; // текущее время в секундах
+            
+            // Проверяем, есть ли в расписании события для текущего времени
+            while (game.scheduleIndex < trackSchedule.length && 
+                   trackSchedule[game.scheduleIndex].time <= currentTime) {
+                
+                const event = trackSchedule[game.scheduleIndex];
+                // Добавляем все слова из этого события
+                event.words.forEach((word, index) => {
+                    setTimeout(() => addScheduledWord(word), index * 300); // слова появляются с интервалом 300мс
+                });
+                
+                game.scheduleIndex++;
+            }
+        }
+        
+        function addScheduledWord(word) {
             if (!game.isRunning) return;
             
-            const word = gameWords[Math.floor(Math.random() * gameWords.length)];
             const wordElement = document.createElement('div');
             wordElement.className = 'word';
             wordElement.textContent = word;
-            wordElement.style.left = Math.random() * 750 + 'px';
+            
+            // Рассчитываем максимальную позицию с учетом ширины слова
+            const maxLeft = 800 - 100; // Ширина контейнера минус максимальная ширина слова
+            wordElement.style.left = Math.random() * maxLeft + 'px';
             wordElement.style.top = '-30px';
             
             wordElement.addEventListener('click', () => collectWord(wordElement));
@@ -258,15 +352,21 @@
         }
         
         function collectWord(wordElement) {
-            if (wordElement.parentNode) {
-                wordElement.parentNode.removeChild(wordElement);
+            if (wordElement.parentNode && !wordElement.classList.contains('collected')) {
+                // Добавляем класс для анимации сбора
+                wordElement.classList.add('collected');
+                
+                // Убираем из массива и увеличиваем счет
                 game.words = game.words.filter(w => w !== wordElement);
                 game.score++;
                 document.getElementById('scoreValue').textContent = game.score;
                 
-                // Эффект сбора слова
-                wordElement.style.transform = 'scale(1.5)';
-                wordElement.style.opacity = '0';
+                // Удаляем элемент после анимации
+                setTimeout(() => {
+                    if (wordElement.parentNode) {
+                        wordElement.parentNode.removeChild(wordElement);
+                    }
+                }, 600); // Длительность анимации collectEffect
             }
         }
         

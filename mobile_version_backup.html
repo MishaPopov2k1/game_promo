@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>КАЖЕТСЯ - Мобильная версия</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(180deg, 
+                rgba(44, 62, 80, 0.9) 0%, 
+                rgba(52, 73, 94, 0.8) 50%, 
+                rgba(44, 62, 80, 0.9) 100%),
+                url('public/images/dozhd_kapli_steklo_348253_3840x2400.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Контейнер игры - вертикальный формат */
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 480px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, 
+                rgba(0, 0, 0, 0.3) 0%,
+                rgba(0, 0, 0, 0.1) 50%,
+                rgba(0, 0, 0, 0.4) 100%);
+            overflow: hidden;
+        }
+
+        /* Canvas для фоновых эффектов */
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Игрок внизу экрана */
+        #player {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            z-index: 10;
+            transition: left 0.3s ease;
+        }
+
+        .runner {
+            width: 100%;
+            height: 100%;
+            background-image: url('public/images/HABBA.jpg');
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            border: 3px solid rgba(173, 216, 230, 0.8);
+            box-shadow: 0 0 20px rgba(173, 216, 230, 0.6);
+            animation: floating 2s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Строки текста - падают сверху */
+        .lyric-phrase {
+            position: absolute;
+            top: -50px;
+            padding: 10px 18px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: 900;
+            color: #1a252f;
+            text-align: center;
+            z-index: 5;
+            animation: fallDown 7s linear forwards;
+            cursor: pointer;
+            backdrop-filter: blur(2px);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            max-width: 320px;
+            line-height: 1.3;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Разные стили для типов строк - атмосферные дождливые цвета */
+        .lyric-phrase.verse {
+            background: linear-gradient(135deg, 
+                rgba(70, 130, 180, 0.85), 
+                rgba(100, 149, 237, 0.75));
+            font-size: 18px;
+            border-color: rgba(70, 130, 180, 0.6);
+            box-shadow: 0 6px 20px rgba(70, 130, 180, 0.4);
+        }
+
+        .lyric-phrase.chorus {
+            background: linear-gradient(135deg, 
+                rgba(106, 90, 205, 0.85), 
+                rgba(123, 104, 238, 0.75));
+            font-size: 20px;
+            border-color: rgba(106, 90, 205, 0.6);
+            box-shadow: 0 6px 25px rgba(106, 90, 205, 0.5);
+        }
+
+        .lyric-phrase.intro {
+            background: linear-gradient(135deg, 
+                rgba(95, 158, 160, 0.85), 
+                rgba(72, 209, 204, 0.75));
+            font-size: 19px;
+            border-color: rgba(95, 158, 160, 0.6);
+            box-shadow: 0 6px 22px rgba(95, 158, 160, 0.45);
+        }
+
+
+
+        @keyframes fallDown {
+            0% {
+                top: -50px;
+                opacity: 0;
+                transform: scale(0.7) rotateX(-10deg);
+                filter: blur(2px) brightness(0.8);
+            }
+            10% {
+                opacity: 0.8;
+                transform: scale(0.9) rotateX(-5deg);
+                filter: blur(1px) brightness(0.9);
+            }
+            20% {
+                opacity: 1;
+                transform: scale(1) rotateX(0deg);
+                filter: blur(0px) brightness(1);
+            }
+            80% {
+                opacity: 1;
+                transform: scale(1) rotateX(0deg);
+                filter: blur(0px) brightness(1);
+            }
+            95% {
+                opacity: 0.6;
+                transform: scale(0.9) rotateX(5deg);
+                filter: blur(1px) brightness(0.9);
+            }
+            100% {
+                top: 100vh;
+                opacity: 0;
+                transform: scale(0.7) rotateX(10deg);
+                filter: blur(2px) brightness(0.7);
+            }
+        }
+
+        /* Эффекты при сборе */
+        .collected-phrase {
+            animation: collect 1.4s ease-out forwards !important;
+            z-index: 15 !important;
+            pointer-events: none;
+        }
+
+        @keyframes collect {
+            0% {
+                opacity: 1;
+                transform: scale(1) translateY(0) rotate(0deg);
+                filter: brightness(1) saturate(1);
+                box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            }
+            20% {
+                opacity: 1;
+                transform: scale(1.3) translateY(-15px) rotate(5deg);
+                filter: brightness(1.4) saturate(1.3);
+                box-shadow: 0 10px 30px rgba(70, 130, 180, 0.6);
+            }
+            50% {
+                opacity: 0.9;
+                transform: scale(1.1) translateY(-35px) rotate(-3deg);
+                filter: brightness(1.8) saturate(1.5);
+                box-shadow: 0 15px 40px rgba(123, 104, 238, 0.7);
+            }
+            80% {
+                opacity: 0.4;
+                transform: scale(0.7) translateY(-55px) rotate(2deg);
+                filter: brightness(2.2) saturate(2);
+                box-shadow: 0 20px 50px rgba(95, 158, 160, 0.8);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.3) translateY(-80px) rotate(0deg);
+                filter: brightness(2.5) saturate(2.5);
+                box-shadow: 0 25px 60px rgba(255, 255, 255, 0.9);
+            }
+        }
+
+        /* Частицы и эффекты */
+        .collect-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle, 
+                rgba(255, 255, 255, 0.95), 
+                rgba(70, 130, 180, 0.7), 
+                rgba(95, 158, 160, 0.4));
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 12;
+            animation: particle 1.2s ease-out forwards;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+        }
+
+        @keyframes particle {
+            0% {
+                opacity: 1;
+                transform: scale(1) translate(0, 0) rotate(0deg);
+                filter: blur(0px) brightness(1);
+                box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+            }
+            30% {
+                opacity: 0.9;
+                transform: scale(1.5) translate(calc(var(--dx) * 0.3), calc(var(--dy) * 0.3)) rotate(90deg);
+                filter: blur(0.5px) brightness(1.3);
+                box-shadow: 0 0 15px rgba(70, 130, 180, 0.8);
+            }
+            70% {
+                opacity: 0.5;
+                transform: scale(2) translate(calc(var(--dx) * 0.7), calc(var(--dy) * 0.7)) rotate(180deg);
+                filter: blur(1px) brightness(1.6);
+                box-shadow: 0 0 20px rgba(95, 158, 160, 0.7);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(3) translate(var(--dx), var(--dy)) rotate(270deg);
+                filter: blur(2px) brightness(2);
+                box-shadow: 0 0 25px rgba(123, 104, 238, 0.5);
+            }
+        }
+
+        /* UI элементы */
+        .ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 20;
+        }
+
+        .score-info {
+            background: rgba(44, 62, 80, 0.6);
+            padding: 10px 15px;
+            border-radius: 20px;
+            color: #ecf0f1;
+            font-size: 14px;
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(70, 130, 180, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 2px;
+            z-index: 20;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(70, 130, 180, 0.9), 
+                rgba(95, 158, 160, 0.9), 
+                rgba(106, 90, 205, 0.9));
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(70, 130, 180, 0.6);
+        }
+
+        /* Стартовый экран */
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #startScreen h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(173, 216, 230, 0.8);
+            letter-spacing: 3px;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            color: #bdc3c7;
+        }
+
+        .mobile-instructions {
+            font-size: 0.9em;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            opacity: 0.8;
+            max-width: 300px;
+        }
+
+        #startBtn {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #3498db, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        #startBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.6);
+        }
+
+        /* Экран окончания игры */
+        #gameOver {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #gameOver h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #3498db;
+        }
+
+        .final-stats {
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        #restartBtn {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Дождевые капли */
+        .rain-drop {
+            position: absolute;
+            width: 2px;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(135, 206, 235, 0.6));
+            animation: rainFall 2s linear infinite;
+            z-index: 2;
+        }
+
+        @keyframes rainFall {
+            0% { top: -20px; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100vh; opacity: 0; }
+        }
+
+        /* Контролы для мобилки */
+        .mobile-controls {
+            position: absolute;
+            bottom: 140px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 15;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(70, 130, 180, 0.4);
+            border: 2px solid rgba(70, 130, 180, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ecf0f1;
+            font-size: 20px;
+            backdrop-filter: blur(8px);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn:active {
+            transform: scale(0.9);
+            background: rgba(70, 130, 180, 0.6);
+            box-shadow: 0 6px 20px rgba(70, 130, 180, 0.5);
+        }
+
+        /* Панель синхронизации */
+        .sync-panel {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            z-index: 25;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: none;
+        }
+
+        .sync-panel button {
+            background: rgba(52, 152, 219, 0.8);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 2px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+
+        .sync-panel button:hover {
+            background: rgba(52, 152, 219, 1);
+        }
+
+        /* Стили для второго уровня */
+        .level-2-phrase {
+            animation: level2Fall 6.5s linear forwards;
+        }
+
+        @keyframes level2Fall {
+            0% {
+                top: -50px;
+                opacity: 0;
+                transform: scale(0.8) rotate(-15deg);
+                filter: hue-rotate(0deg);
+            }
+            10% {
+                opacity: 1;
+                transform: scale(1) rotate(-10deg);
+                filter: hue-rotate(30deg);
+            }
+            50% {
+                transform: scale(1.1) rotate(0deg);
+                filter: hue-rotate(60deg);
+            }
+            90% {
+                opacity: 1;
+                transform: scale(1) rotate(10deg);
+                filter: hue-rotate(90deg);
+            }
+            100% {
+                top: 100vh;
+                opacity: 0;
+                transform: scale(0.8) rotate(15deg);
+                filter: hue-rotate(120deg);
+            }
+        }
+
+        /* Стили для третьего уровня */
+        .level-3-phrase {
+            animation: level3Fall 4.5s linear forwards;
+        }
+
+        @keyframes level3Fall {
+            0% {
+                top: -50px;
+                opacity: 0;
+                transform: scale(0.8) rotate(-20deg) skew(-3deg);
+                filter: hue-rotate(0deg) saturate(1.8) brightness(1.1);
+            }
+            15% {
+                opacity: 1;
+                transform: scale(1.05) rotate(-10deg) skew(-1deg);
+                filter: hue-rotate(45deg) saturate(2) brightness(1.2);
+            }
+            35% {
+                transform: scale(0.95) rotate(0deg) skew(0deg);
+                filter: hue-rotate(90deg) saturate(2.2) brightness(1.3);
+            }
+            55% {
+                transform: scale(1.1) rotate(10deg) skew(1deg);
+                filter: hue-rotate(180deg) saturate(2.4) brightness(1.4);
+            }
+            75% {
+                transform: scale(1) rotate(20deg) skew(2deg);
+                filter: hue-rotate(270deg) saturate(2.6) brightness(1.5);
+            }
+            90% {
+                opacity: 1;
+                transform: scale(1.05) rotate(30deg) skew(3deg);
+                filter: hue-rotate(315deg) saturate(2.8) brightness(1.6);
+            }
+            100% {
+                top: 100vh;
+                opacity: 0;
+                transform: scale(0.8) rotate(40deg) skew(5deg);
+                filter: hue-rotate(360deg) saturate(3) brightness(1.7);
+            }
+        }
+
+        /* Монетки */
+        .coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, 
+                #ffd700 0%, 
+                #ffed4e 25%, 
+                #f39c12 50%, 
+                #e67e22 75%, 
+                #d35400 100%);
+            border-radius: 50%;
+            border: 2px solid #f1c40f;
+            box-shadow: 
+                0 0 15px rgba(255, 215, 0, 0.8),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 6;
+            animation: coinFall 4s linear forwards;
+            cursor: pointer;
+        }
+
+        .coin::before {
+            content: '💰';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            animation: coinSpin 1s linear infinite;
+        }
+
+        @keyframes coinSpin {
+            0% { transform: translate(-50%, -50%) rotateY(0deg); }
+            50% { transform: translate(-50%, -50%) rotateY(180deg) scaleX(-1); }
+            100% { transform: translate(-50%, -50%) rotateY(360deg); }
+        }
+
+        @keyframes coinFall {
+            0% {
+                top: -50px;
+                opacity: 0;
+                transform: scale(0.8);
+                filter: brightness(1);
+            }
+            10% {
+                opacity: 1;
+                transform: scale(1);
+                filter: brightness(1.2);
+            }
+            90% {
+                opacity: 1;
+                transform: scale(1);
+                filter: brightness(1.2);
+            }
+            100% {
+                top: 100vh;
+                opacity: 0;
+                transform: scale(0.8);
+                filter: brightness(1);
+            }
+        }
+
+        .coin-collected {
+            animation: coinCollect 0.8s ease-out forwards !important;
+            z-index: 20 !important;
+            pointer-events: none;
+        }
+
+        @keyframes coinCollect {
+            0% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+                filter: brightness(1.2);
+            }
+            30% {
+                opacity: 1;
+                transform: scale(1.5) rotate(180deg);
+                filter: brightness(2);
+            }
+            70% {
+                opacity: 0.8;
+                transform: scale(2) rotate(360deg);
+                filter: brightness(3);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(3) rotate(540deg);
+                filter: brightness(4);
+            }
+        }
+
+        .level-transition {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(106, 90, 205, 0.9), rgba(123, 104, 238, 0.8));
+            color: white;
+            padding: 20px 30px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 100;
+            animation: levelTransition 3s ease-out forwards;
+            box-shadow: 0 10px 30px rgba(106, 90, 205, 0.6);
+        }
+
+        @keyframes levelTransition {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.5);
+            }
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            80% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="480" height="800"></canvas>
+        
+        <!-- Игрок -->
+        <div id="player">
+            <div class="runner"></div>
+        </div>
+        
+        <!-- UI панель -->
+        <div class="ui-panel">
+            <div class="score-info">
+                <div>Собрано: <span id="collectedCount">0</span></div>
+                <div>Комбо: <span id="comboCount">1</span>x</div>
+            </div>
+            <div class="score-info">
+                <div>Очки: <span id="scoreCount">0</span></div>
+                <div style="color: #3498db;">Уровень: <span id="levelIndicator">1</span></div>
+            </div>
+            <div class="score-info" id="coinPanel">
+                <div style="color: #f1c40f;">💰 Монеток: <span id="coinCount">0</span></div>
+            </div>
+            <div class="score-info">
+                <button onclick="toggleSyncPanel()" style="background: rgba(52,152,219,0.8); color: white; border: none; padding: 5px; border-radius: 5px; font-size: 10px;">🎵 Синхр</button>
+            </div>
+        </div>
+        
+        <!-- Прогресс бар -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <!-- Мобильные контролы -->
+        <div class="mobile-controls">
+            <div class="control-btn" id="leftBtn">←</div>
+            <div class="control-btn" id="rightBtn">→</div>
+        </div>
+
+        <!-- Панель синхронизации (только во время игры) -->
+        <div class="sync-panel" id="syncPanel">
+            <div>🎵 Время: <span id="currentTime">0:00</span></div>
+            <div>Следующая фраза: <span id="nextPhrase">-</span></div>
+            <div>Через: <span id="timeToNext">-</span>с</div>
+            <button onclick="toggleSyncPanel()">Скрыть</button>
+        </div>
+    </div>
+
+    <!-- Стартовый экран -->
+    <div id="startScreen">
+        <h1>КАЖЕТСЯ</h1>
+        <div class="subtitle">Мобильная версия | habba-po</div>
+        <div class="mobile-instructions">
+            📱 Строчки падают сверху<br>
+            💰 Собирай золотые монетки — главная цель!<br>
+            💙 Также собирай фразы трека по порядку<br>
+            🎵 3 уровня сложности с разной частотой монеток<br>
+            👆 Тапай или свайпай влево/вправо<br>
+            ✨ Почувствуй ритм и атмосферу
+        </div>
+        <button id="startBtn">🎬 СТАРТ</button>
+    </div>
+
+    <!-- Экран окончания -->
+    <div id="gameOver">
+        <h2>Трек прослушан!</h2>
+        <div class="final-stats">
+            <div>Собрано фраз: <span id="finalCollected">0</span></div>
+            <div>Финальный счет: <span id="finalScore">0</span></div>
+            <div>Макс. комбо: <span id="finalCombo">1</span></div>
+            <div style="color: #3498db;">Уровень достигнут: <span id="finalLevel">1</span></div>
+            <div style="color: #f1c40f;">💰 Монеток: <span id="finalCoins">0</span></div>
+        </div>
+        <button id="restartBtn">🔄 ЕЩЁ РАЗ</button>
+    </div>
+
+    <!-- Аудио -->
+    <audio id="backgroundMusic" preload="auto">
+        <source src="music/kazhetsya/m4a/кажется2.m4a" type="audio/mp4">
+        <p>Музыка недоступна</p>
+    </audio>
+
+    <script>
+        // Разбитые на короткие фразы строки трека
+        const trackPhrases = [
+            // Припев 1 (3 сек)
+            { text: "Кажется", timing: 3, type: "chorus", order: 1 },
+            { text: "начинается дождь", timing: 4, type: "chorus", order: 2 },
+            { text: "Даже сейчас летом", timing: 6, type: "chorus", order: 3 },
+            { text: "под дождем мы бегаем", timing: 7.5, type: "chorus", order: 4 },
+            { text: "как дети", timing: 8.5, type: "chorus", order: 5 },
+            { text: "Пока время", timing: 9.5, type: "chorus", order: 6 },
+            { text: "проносится сквозь", timing: 10.5, type: "chorus", order: 7 },
+            { text: "Сохраню тепло и память", timing: 12, type: "chorus", order: 8 },
+            { text: "на этом куплете", timing: 13.5, type: "chorus", order: 9 },
+            
+            // Куплет 1
+            { text: "Что смывает дождь,", timing: 15, type: "verse", order: 10 },
+            { text: "а скажи мне?", timing: 16, type: "verse", order: 11 },
+            { text: "Может быть, следы ошибок", timing: 18, type: "verse", order: 12 },
+            { text: "или лица, что забыли", timing: 19.5, type: "verse", order: 13 },
+            { text: "Может быть, слова,", timing: 21, type: "verse", order: 14 },
+            { text: "что не сказали", timing: 22, type: "verse", order: 15 },
+            { text: "мысли, что не предложили", timing: 23.5, type: "verse", order: 16 },
+            { text: "Или все грехи,", timing: 24, type: "verse", order: 17 },
+            { text: "чтобы наконец-то", timing: 25, type: "verse", order: 18 },
+            { text: "стать счастливым", timing: 26, type: "verse", order: 19 },
+            
+            { text: "Помню на веранде с дедом,", timing: 27, type: "verse", order: 20 },
+            { text: "наблюдали небо", timing: 28.5, type: "verse", order: 21 },
+            { text: "Как оно чернело,", timing: 30, type: "verse", order: 22 },
+            { text: "а воздух становился свежим", timing: 31.5, type: "verse", order: 23 },
+            { text: "Мы молча сидели", timing: 33, type: "verse", order: 24 },
+            { text: "слушая порывы ветра", timing: 34.5, type: "verse", order: 25 },
+            { text: "Я прошу, будь счастлив,", timing: 36, type: "verse", order: 26 },
+            { text: "где бы ты там ни был", timing: 37.5, type: "verse", order: 27 },
+            
+            // Продолжение куплета 1
+            { text: "Теперь я сижу на том же месте,", timing: 40, type: "verse", order: 28 },
+            { text: "к сожалению, сам", timing: 41.5, type: "verse", order: 29 },
+            { text: "Где мой дед читал погоду", timing: 43, type: "verse", order: 30 },
+            { text: "по этим облакам", timing: 44.5, type: "verse", order: 31 },
+            { text: "Он передал не просто память,", timing: 46, type: "verse", order: 32 },
+            { text: "а способность понимать", timing: 47.5, type: "verse", order: 33 },
+            { text: "Правда в том, что дождь не выбирает,", timing: 49, type: "verse", order: 34 },
+            { text: "что ему смывать", timing: 50.5, type: "verse", order: 35 },
+            
+            // Припев 2 (52 сек)
+            { text: "Кажется", timing: 52, type: "chorus", order: 36 },
+            { text: "начинается дождь", timing: 53, type: "chorus", order: 37 },
+            { text: "Даже сейчас летом", timing: 55, type: "chorus", order: 38 },
+            { text: "под дождем мы бегаем", timing: 56.5, type: "chorus", order: 39 },
+            { text: "как дети", timing: 57.5, type: "chorus", order: 40 },
+            { text: "Пока время", timing: 58.5, type: "chorus", order: 41 },
+            { text: "проносится сквозь", timing: 59.5, type: "chorus", order: 42 },
+            { text: "Сохраню тепло и память", timing: 61, type: "chorus", order: 43 },
+            { text: "на этом куплете", timing: 62.5, type: "chorus", order: 44 },
+            
+            // Припев 3 (1:06 = 66 сек)
+            { text: "Кажется", timing: 66, type: "chorus", order: 45 },
+            { text: "начинается дождь", timing: 67, type: "chorus", order: 46 },
+            { text: "Даже сейчас летом", timing: 69, type: "chorus", order: 47 },
+            { text: "под дождем мы бегаем", timing: 70.5, type: "chorus", order: 48 },
+            { text: "как дети", timing: 71.5, type: "chorus", order: 49 },
+            { text: "Пока время", timing: 72.5, type: "chorus", order: 50 },
+            { text: "проносится сквозь", timing: 73.5, type: "chorus", order: 51 },
+            { text: "Сохраню тепло и память", timing: 75, type: "chorus", order: 52 },
+            { text: "на этом куплете", timing: 76.5, type: "chorus", order: 53 },
+            
+            // Куплет 2 (1:17 = 77 сек)
+            { text: "Все пройдет,", timing: 77, type: "verse", order: 54 },
+            { text: "я сохраню это надолго", timing: 78.5, type: "verse", order: 55 },
+            { text: "Я умею ждать,", timing: 80, type: "verse", order: 56 },
+            { text: "но не пылятся мои полки", timing: 81.5, type: "verse", order: 57 },
+            { text: "Очень яркий свет от солнца", timing: 83, type: "verse", order: 58 },
+            { text: "даже после шторма", timing: 84.5, type: "verse", order: 59 },
+            { text: "Да, мы верим в лучшее,", timing: 86, type: "verse", order: 60 },
+            { text: "хоть натворили много", timing: 87.5, type: "verse", order: 61 },
+            
+            { text: "И да, был ранен в спину,", timing: 89, type: "verse", order: 62 },
+            { text: "хоть и был не виноват", timing: 90.5, type: "verse", order: 63 },
+            { text: "Жизнь — игра, это не фильм,", timing: 92, type: "verse", order: 64 },
+            { text: "тут нужно выбирать", timing: 93.5, type: "verse", order: 65 },
+            { text: "Мы умеем любить сильно,", timing: 95, type: "verse", order: 66 },
+            { text: "но нам трудно отпускать", timing: 96.5, type: "verse", order: 67 },
+            { text: "Соберу все силы,", timing: 98, type: "verse", order: 68 },
+            { text: "пущу ветер в паруса", timing: 99.5, type: "verse", order: 69 },
+            
+            // Припев 4 (1:41 = 101 сек)
+            { text: "Кажется", timing: 101, type: "chorus", order: 70 },
+            { text: "начинается дождь", timing: 102, type: "chorus", order: 71 },
+            { text: "Даже сейчас летом", timing: 104, type: "chorus", order: 72 },
+            { text: "под дождем мы бегаем", timing: 105.5, type: "chorus", order: 73 },
+            { text: "как дети", timing: 106.5, type: "chorus", order: 74 },
+            { text: "Пока время", timing: 107.5, type: "chorus", order: 75 },
+            { text: "проносится сквозь", timing: 108.5, type: "chorus", order: 76 },
+            { text: "Сохраню тепло и память", timing: 110, type: "chorus", order: 77 },
+            { text: "на этом куплете", timing: 111.5, type: "chorus", order: 78 },
+            
+            // Финальный припев (1:54 = 114 сек)
+            { text: "Кажется", timing: 114, type: "chorus", order: 79 },
+            { text: "начинается дождь", timing: 115, type: "chorus", order: 80 },
+            { text: "Даже сейчас летом", timing: 117, type: "chorus", order: 81 },
+            { text: "под дождем мы бегаем", timing: 118.5, type: "chorus", order: 82 },
+            { text: "как дети", timing: 119.5, type: "chorus", order: 83 },
+            { text: "Пока время", timing: 120.5, type: "chorus", order: 84 },
+            { text: "проносится сквозь", timing: 121.5, type: "chorus", order: 85 },
+            { text: "Сохраню тепло и память", timing: 123, type: "chorus", order: 86 },
+            { text: "на этом куплете", timing: 124.5, type: "chorus", order: 87 },
+            
+
+        ];
+
+        let game = {
+            score: 0,
+            combo: 1,
+            maxCombo: 1,
+            collected: 0,
+            coins: 0, // собранные монетки
+            playerX: 50, // процент от ширины экрана
+            phrases: [], // активные фразы на экране
+            coinElements: [], // активные монетки на экране
+            rainDrops: [],
+            isRunning: false,
+            canvas: null,
+            ctx: null,
+            gameTime: 0,
+            currentPhraseIndex: 0,
+            expectedOrder: 1, // какую фразу ждем по порядку
+            lastCollectTime: 0,
+            level: 1, // текущий уровень (1, 2 или 3)
+            levelChanged: false, // флаг смены уровня
+            level3Started: false // флаг для 3-го уровня
+        };
+
+        function initGame() {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            game.canvas = canvas;
+            game.ctx = ctx;
+
+            // Настройка размеров для мобильного
+            const container = document.getElementById('gameContainer');
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+
+            const music = document.getElementById('backgroundMusic');
+            music.addEventListener('ended', endGame);
+            music.addEventListener('loadeddata', () => {
+                console.log('Музыка загружена');
+                document.getElementById('startBtn').disabled = false;
+            });
+
+            setupControls();
+            startRainAnimation();
+        }
+
+        function setupControls() {
+            // Кнопки
+            document.getElementById('leftBtn').addEventListener('click', () => movePlayer(-1));
+            document.getElementById('rightBtn').addEventListener('click', () => movePlayer(1));
+            
+            // Тачи и свайпы
+            let startX = 0;
+            let startY = 0;
+            
+            document.addEventListener('touchstart', (e) => {
+                if (!game.isRunning) return;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            });
+            
+            document.addEventListener('touchend', (e) => {
+                if (!game.isRunning) return;
+                e.preventDefault();
+                
+                const endX = e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].clientY;
+                const deltaX = endX - startX;
+                const deltaY = endY - startY;
+                
+                // Swipe detection
+                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+                    if (deltaX > 0) {
+                        movePlayer(1); // right
+                    } else {
+                        movePlayer(-1); // left
+                    }
+                } else {
+                    // Tap на фразу
+                    const touchY = endY;
+                    checkPhraseCollision(touchY);
+                }
+            });
+
+            // Клавиатура для тестирования
+            document.addEventListener('keydown', (e) => {
+                if (!game.isRunning) return;
+                if (e.key === 'ArrowLeft' || e.key === 'a') movePlayer(-1);
+                if (e.key === 'ArrowRight' || e.key === 'd') movePlayer(1);
+            });
+        }
+
+        function movePlayer(direction) {
+            game.playerX = Math.max(20, Math.min(80, game.playerX + direction * 15));
+            updatePlayerPosition();
+        }
+
+        function updatePlayerPosition() {
+            const player = document.getElementById('player');
+            player.style.left = game.playerX + '%';
+        }
+
+        function checkPhraseCollision(touchY) {
+            game.phrases.forEach(phrase => {
+                const rect = phrase.getBoundingClientRect();
+                if (touchY >= rect.top && touchY <= rect.bottom) {
+                    collectPhrase(phrase);
+                }
+            });
+        }
+
+        function startGame() {
+            game.isRunning = true;
+            game.gameTime = 0;
+            game.currentPhraseIndex = 0;
+            game.expectedOrder = 1;
+            
+            document.getElementById('startScreen').style.display = 'none';
+            
+            const music = document.getElementById('backgroundMusic');
+            music.currentTime = 0;
+            music.play().catch(e => console.log('Автозапуск музыки заблокирован'));
+            
+            // Запускаем генерацию монеток с первого уровня
+            startCoinGeneration();
+            
+            // Основной игровой цикл
+            game.gameLoop = setInterval(() => {
+                updateGame();
+                updateProgress();
+                checkForNewPhrases();
+            }, 100);
+            
+            requestAnimationFrame(drawBackground);
+        }
+
+        function updateGame() {
+            if (!game.isRunning) return;
+            
+            const music = document.getElementById('backgroundMusic');
+            game.gameTime = music.currentTime;
+            
+            // Проверяем переход на второй уровень
+            if (game.level === 1 && game.gameTime >= 44 && !game.levelChanged) {
+                switchToLevel2();
+            }
+            
+            // Проверяем переход на третий уровень
+            if (game.level === 2 && game.gameTime >= 88 && !game.level3Started) {
+                switchToLevel3();
+            }
+            
+            // Проверяем коллизии с фразами в области игрока
+            checkPlayerCollisions();
+            
+            // Проверяем коллизии с монетками на всех уровнях
+            checkCoinCollisions();
+            
+            // Убираем старые фразы
+            game.phrases = game.phrases.filter(phrase => {
+                if (phrase.offsetTop > window.innerHeight) {
+                    if (phrase.parentNode) {
+                        phrase.parentNode.removeChild(phrase);
+                    }
+                    return false;
+                }
+                return true;
+            });
+            
+            // Убираем старые монетки
+            game.coinElements = game.coinElements.filter(coin => {
+                if (coin.offsetTop > window.innerHeight) {
+                    if (coin.parentNode) {
+                        coin.parentNode.removeChild(coin);
+                    }
+                    return false;
+                }
+                return true;
+            });
+        }
+
+        function checkPlayerCollisions() {
+            const playerRect = document.getElementById('player').getBoundingClientRect();
+            const playerCenterX = playerRect.left + playerRect.width / 2;
+            
+            game.phrases.forEach(phrase => {
+                const phraseRect = phrase.getBoundingClientRect();
+                const phraseCenterX = phraseRect.left + phraseRect.width / 2;
+                
+                // Проверяем пересечение по X и Y
+                if (Math.abs(playerCenterX - phraseCenterX) < 50 && 
+                    phraseRect.bottom >= playerRect.top && 
+                    phraseRect.top <= playerRect.bottom) {
+                    collectPhrase(phrase);
+                }
+            });
+        }
+
+        function checkForNewPhrases() {
+            while (game.currentPhraseIndex < trackPhrases.length && 
+                   trackPhrases[game.currentPhraseIndex].timing <= game.gameTime) {
+                addPhrase(trackPhrases[game.currentPhraseIndex]);
+                game.currentPhraseIndex++;
+            }
+        }
+
+        function addPhrase(phraseData) {
+            const phrase = document.createElement('div');
+            let className = `lyric-phrase ${phraseData.type}`;
+            
+            // Для разных уровней добавляем специальные классы
+            if (game.level === 2) {
+                className += ' level-2-phrase';
+            } else if (game.level === 3) {
+                className += ' level-3-phrase';
+            }
+            
+            phrase.className = className;
+            phrase.textContent = phraseData.text;
+            phrase.dataset.type = phraseData.type;
+            phrase.dataset.order = phraseData.order;
+            
+            // Случайная позиция по X
+            const randomX = Math.random() * (window.innerWidth - 280);
+            phrase.style.left = randomX + 'px';
+            
+            document.getElementById('gameContainer').appendChild(phrase);
+            game.phrases.push(phrase);
+        }
+
+        function switchToLevel2() {
+            game.level = 2;
+            game.levelChanged = true;
+            
+            // Показываем уведомление о смене уровня
+            const transition = document.createElement('div');
+            transition.className = 'level-transition';
+            transition.innerHTML = '🎵 УРОВЕНЬ 2 🎵<br/>Ускорение и вращение!';
+            
+            document.getElementById('gameContainer').appendChild(transition);
+            
+            // Убираем уведомление через 3 секунды
+            setTimeout(() => {
+                if (transition.parentNode) {
+                    transition.parentNode.removeChild(transition);
+                }
+            }, 3000);
+            
+            updateUI();
+        }
+
+        function switchToLevel3() {
+            game.level = 3;
+            game.level3Started = true;
+            
+            // Показываем уведомление о смене уровня
+            const transition = document.createElement('div');
+            transition.className = 'level-transition';
+            transition.innerHTML = '💰 УРОВЕНЬ 3 💰<br/>ХАОС И МОНЕТКИ!<br/>Сверхскорость и искажения!';
+            
+            document.getElementById('gameContainer').appendChild(transition);
+            
+            // Убираем уведомление через 3 секунды
+            setTimeout(() => {
+                if (transition.parentNode) {
+                    transition.parentNode.removeChild(transition);
+                }
+            }, 3000);
+            
+            updateUI();
+        }
+
+        function startCoinGeneration() {
+            // Генерируем монетки на всех уровнях с разной частотой
+            const coinInterval = setInterval(() => {
+                if (!game.isRunning) {
+                    clearInterval(coinInterval);
+                    return;
+                }
+                
+                // Разная частота для разных уровней
+                let chance = 0;
+                let delay = 5000; // базовая задержка
+                
+                switch(game.level) {
+                    case 1:
+                        chance = 0.15; // 15% шанс, редко
+                        delay = 8000 + Math.random() * 4000; // 8-12 сек
+                        break;
+                    case 2:
+                        chance = 0.3; // 30% шанс, умеренно
+                        delay = 5000 + Math.random() * 3000; // 5-8 сек
+                        break;
+                    case 3:
+                        chance = 0.6; // 60% шанс, часто
+                        delay = 2000 + Math.random() * 2000; // 2-4 сек
+                        break;
+                }
+                
+                if (Math.random() < chance) {
+                    addCoin();
+                }
+            }, 3000 + Math.random() * 2000); // общая базовая частота проверки
+        }
+
+        function addCoin() {
+            const coin = document.createElement('div');
+            coin.className = 'coin';
+            
+            // Случайная позиция по X
+            const randomX = Math.random() * (window.innerWidth - 50);
+            coin.style.left = randomX + 'px';
+            
+            document.getElementById('gameContainer').appendChild(coin);
+            game.coinElements.push(coin);
+        }
+
+        function checkCoinCollisions() {
+            const playerRect = document.getElementById('player').getBoundingClientRect();
+            const playerCenterX = playerRect.left + playerRect.width / 2;
+            
+            game.coinElements.forEach(coin => {
+                const coinRect = coin.getBoundingClientRect();
+                const coinCenterX = coinRect.left + coinRect.width / 2;
+                
+                // Проверяем пересечение по X и Y
+                if (Math.abs(playerCenterX - coinCenterX) < 40 && 
+                    coinRect.bottom >= playerRect.top && 
+                    coinRect.top <= playerRect.bottom) {
+                    collectCoin(coin);
+                }
+            });
+        }
+
+        function collectCoin(coinElement) {
+            if (!coinElement.parentNode) return;
+            
+            // Увеличиваем счетчик монеток и даем бонусные очки
+            game.coins++;
+            game.score += 50 * game.combo; // Монетки дают много очков!
+            
+            // Создаем эффект сбора монетки
+            createCoinEffects(coinElement);
+            
+            // Удаляем монетку
+            coinElement.classList.add('coin-collected');
+            game.coinElements = game.coinElements.filter(c => c !== coinElement);
+            
+            setTimeout(() => {
+                if (coinElement.parentNode) {
+                    coinElement.parentNode.removeChild(coinElement);
+                }
+            }, 800);
+            
+            updateUI();
+        }
+
+        function createCoinEffects(coinElement) {
+            const rect = coinElement.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // Создаем золотые частицы
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = '6px';
+                particle.style.height = '6px';
+                particle.style.background = 'radial-gradient(circle, #ffd700, #f39c12)';
+                particle.style.borderRadius = '50%';
+                particle.style.pointerEvents = 'none';
+                particle.style.zIndex = '15';
+                
+                const angle = (i / 8) * Math.PI * 2;
+                const distance = 40 + Math.random() * 20;
+                const dx = Math.cos(angle) * distance;
+                const dy = Math.sin(angle) * distance;
+                
+                particle.style.left = centerX + 'px';
+                particle.style.top = centerY + 'px';
+                
+                document.getElementById('gameContainer').appendChild(particle);
+                
+                // Анимируем частицу
+                particle.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${dx}px, ${dy}px) scale(2)`, opacity: 0 }
+                ], {
+                    duration: 800,
+                    easing: 'ease-out'
+                }).onfinish = () => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                };
+            }
+            
+            // Показываем +50 очков
+            const scoreEffect = document.createElement('div');
+            scoreEffect.style.position = 'absolute';
+            scoreEffect.style.left = (centerX - 20) + 'px';
+            scoreEffect.style.top = (centerY - 20) + 'px';
+            scoreEffect.style.color = '#f1c40f';
+            scoreEffect.style.fontSize = '18px';
+            scoreEffect.style.fontWeight = 'bold';
+            scoreEffect.style.pointerEvents = 'none';
+            scoreEffect.style.zIndex = '20';
+            scoreEffect.textContent = '+' + (50 * game.combo);
+            
+            document.getElementById('gameContainer').appendChild(scoreEffect);
+            
+            scoreEffect.animate([
+                { transform: 'translateY(0) scale(1)', opacity: 1 },
+                { transform: 'translateY(-50px) scale(1.2)', opacity: 0 }
+            ], {
+                duration: 1200,
+                easing: 'ease-out'
+            }).onfinish = () => {
+                if (scoreEffect.parentNode) {
+                    scoreEffect.parentNode.removeChild(scoreEffect);
+                }
+            };
+        }
+
+        function collectPhrase(phraseElement) {
+            if (!phraseElement.parentNode) return;
+            
+            const order = parseInt(phraseElement.dataset.order);
+            const phraseType = phraseElement.dataset.type;
+            
+            let points = 1;
+            
+            // Проверяем правильность порядка
+            if (order === game.expectedOrder) {
+                // Правильный порядок - больше очков
+                points = phraseType === 'chorus' ? 5 : phraseType === 'intro' ? 3 : 2;
+                game.combo = Math.min(10, game.combo + 1);
+                game.expectedOrder++;
+            } else {
+                // Неправильный порядок - меньше очков и сброс комбо
+                points = 1;
+                game.combo = 1;
+            }
+            
+            game.score += points * game.combo;
+            game.collected++;
+            game.maxCombo = Math.max(game.maxCombo, game.combo);
+            game.lastCollectTime = Date.now();
+            
+            // Эффекты сбора
+            createCollectEffects(phraseElement);
+            
+            // Удаляем фразу
+            phraseElement.classList.add('collected-phrase');
+            game.phrases = game.phrases.filter(p => p !== phraseElement);
+            
+            setTimeout(() => {
+                if (phraseElement.parentNode) {
+                    phraseElement.parentNode.removeChild(phraseElement);
+                }
+            }, 1400);
+            
+            updateUI();
+        }
+
+        function createCollectEffects(phraseElement) {
+            const rect = phraseElement.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // Создаем частицы
+            for (let i = 0; i < 10; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'collect-particle';
+                
+                const angle = (i / 10) * Math.PI * 2;
+                const distance = 40 + Math.random() * 20;
+                const dx = Math.cos(angle) * distance;
+                const dy = Math.sin(angle) * distance;
+                
+                particle.style.left = centerX + 'px';
+                particle.style.top = centerY + 'px';
+                particle.style.setProperty('--dx', dx + 'px');
+                particle.style.setProperty('--dy', dy + 'px');
+                
+                document.getElementById('gameContainer').appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 1200);
+            }
+        }
+
+
+
+        function updateUI() {
+            document.getElementById('collectedCount').textContent = game.collected;
+            document.getElementById('scoreCount').textContent = game.score;
+            document.getElementById('comboCount').textContent = game.combo;
+            
+            // Обновляем индикатор уровня
+            const levelIndicator = document.getElementById('levelIndicator');
+            if (levelIndicator) {
+                levelIndicator.textContent = game.level;
+            }
+            
+            // Обновляем счетчик монеток (только если панель видна)
+            const coinCount = document.getElementById('coinCount');
+            if (coinCount) {
+                coinCount.textContent = game.coins;
+            }
+            
+            // Обновляем панель синхронизации
+            updateSyncPanel();
+        }
+
+        function toggleSyncPanel() {
+            const panel = document.getElementById('syncPanel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        function updateSyncPanel() {
+            if (!game.isRunning) return;
+            
+            const currentTimeSpan = document.getElementById('currentTime');
+            const nextPhraseSpan = document.getElementById('nextPhrase');
+            const timeToNextSpan = document.getElementById('timeToNext');
+            
+            if (currentTimeSpan) {
+                const minutes = Math.floor(game.gameTime / 60);
+                const seconds = Math.floor(game.gameTime % 60);
+                currentTimeSpan.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            if (nextPhraseSpan && timeToNextSpan) {
+                const nextPhrase = trackPhrases[game.currentPhraseIndex];
+                if (nextPhrase) {
+                    nextPhraseSpan.textContent = nextPhrase.text.substring(0, 25) + (nextPhrase.text.length > 25 ? '...' : '');
+                    const timeToNext = Math.max(0, nextPhrase.timing - game.gameTime);
+                    timeToNextSpan.textContent = timeToNext.toFixed(1);
+                } else {
+                    nextPhraseSpan.textContent = 'Конец трека';
+                    timeToNextSpan.textContent = '-';
+                }
+            }
+        }
+
+        function updateProgress() {
+            const music = document.getElementById('backgroundMusic');
+            if (music.duration) {
+                const progress = (music.currentTime / music.duration) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+            }
+        }
+
+        function drawBackground() {
+            if (!game.isRunning) return;
+            
+            const ctx = game.ctx;
+            const canvas = game.canvas;
+            
+            // Очищаем canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Градиентный фон
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, 'rgba(52, 73, 94, 0.3)');
+            gradient.addColorStop(0.5, 'rgba(44, 62, 80, 0.2)');
+            gradient.addColorStop(1, 'rgba(52, 73, 94, 0.4)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            requestAnimationFrame(drawBackground);
+        }
+
+        function startRainAnimation() {
+            if (!game.isRunning) return;
+            
+            setInterval(() => {
+                if (!game.isRunning || Math.random() > 0.3) return;
+                
+                const drop = document.createElement('div');
+                drop.className = 'rain-drop';
+                drop.style.left = Math.random() * window.innerWidth + 'px';
+                drop.style.animationDuration = (1.5 + Math.random()) + 's';
+                
+                document.getElementById('gameContainer').appendChild(drop);
+                
+                setTimeout(() => {
+                    if (drop.parentNode) {
+                        drop.parentNode.removeChild(drop);
+                    }
+                }, 3000);
+            }, 200);
+        }
+
+        function endGame() {
+            game.isRunning = false;
+            clearInterval(game.gameLoop);
+            
+            // Показываем результаты
+            document.getElementById('finalCollected').textContent = game.collected;
+            document.getElementById('finalScore').textContent = game.score;
+            document.getElementById('finalCombo').textContent = game.maxCombo;
+            document.getElementById('finalLevel').textContent = game.level;
+            document.getElementById('finalCoins').textContent = game.coins;
+            
+            document.getElementById('gameOver').style.display = 'flex';
+        }
+
+        function restartGame() {
+            // Сброс игры
+            game.score = 0;
+            game.combo = 1;
+            game.maxCombo = 1;
+            game.collected = 0;
+            game.coins = 0;
+            game.playerX = 50;
+            game.currentPhraseIndex = 0;
+            game.expectedOrder = 1;
+            game.level = 1;
+            game.levelChanged = false;
+            game.level3Started = false;
+            
+            // Очищаем все фразы на экране
+            game.phrases.forEach(phrase => {
+                if (phrase.parentNode) phrase.parentNode.removeChild(phrase);
+            });
+            game.phrases = [];
+            
+            // Очищаем все монетки на экране
+            game.coinElements.forEach(coin => {
+                if (coin.parentNode) coin.parentNode.removeChild(coin);
+            });
+            game.coinElements = [];
+            
+            updatePlayerPosition();
+            updateUI();
+            
+            document.getElementById('gameOver').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            initGame();
+            
+            document.getElementById('startBtn').addEventListener('click', startGame);
+            document.getElementById('restartBtn').addEventListener('click', restartGame);
+        });
+    </script>
+</body>
+</html>
