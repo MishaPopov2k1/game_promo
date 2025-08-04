@@ -35,4 +35,5 @@ Password: [ВСТАВЬТЕ ВАШ PERSONAL ACCESS TOKEN]
 https://mishapopov2k1.github.io/game_promo/
 
 ## 📱 Для мобильного доступа:
-https://mishapopov2k1.github.io/game_promo/mobile_version.html
+https://mishapopov2k1.gith
+ub.io/game_promo/mobile_version.html
